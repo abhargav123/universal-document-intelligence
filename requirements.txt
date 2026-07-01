@@ -3,3 +3,7 @@ langchain-core
 chromadb
 sentence-transformers
 huggingface-hub
+docx2txt
+pypdf
+langchain-community
+langchain-text-splitters
