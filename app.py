@@ -104,36 +104,34 @@ if not os.path.exists("extracted_pdf"):
 
 @st.cache_resource
 def load_system():
-    # Free cloud tier computing using lightweight embeddings
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     return embeddings
 
 embeddings = load_system()
 
-# Native Client Core Framework for Groq Cloud API
-def invoke_groq_llm(prompt):
-    api_key = st.secrets.get("GROQ_API_KEY")
+# Native Client Core Framework for Gemini Cloud API
+def invoke_gemini_llm(prompt):
+    api_key = st.secrets.get("GEMINI_API_KEY")
     if not api_key:
-        return "Error: GROQ_API_KEY environment configuration variable missing in Advanced Settings."
+        return "Error: GEMINI_API_KEY configuration token missing in Streamlit Advanced Settings."
     
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
-        "model": "llama3-8b-8192",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.2
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }]
     }
     
     try:
         req = urllib.request.Request(url)
         req.add_header("Content-Type", "application/json")
-        req.add_header("Authorization", f"Bearer {api_key}")
         
         data = json.dumps(payload).encode("utf-8")
         with urllib.request.urlopen(req, data=data, timeout=30) as response:
             res_data = json.loads(response.read().decode("utf-8"))
-            return res_data["choices"][0]["message"]["content"]
+            return res_data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
-        return f"Enterprise Inference Pipeline Offline: {str(e)}"
+        return f"Enterprise Inference Pipeline Offline (Gemini Error): {str(e)}"
 
 def search_live_web(query):
     try:
@@ -239,7 +237,7 @@ if uploaded_files:
                         f"Analyze this document text and provide a concise 2-sentence summary followed by 3 bulleted key insights.\n"
                         f"Text:\n{raw_text[:3000]}\n\nResponse:"
                     )
-                    st.session_state.doc_summaries[uploaded_file.name] = invoke_groq_llm(summary_prompt)
+                    st.session_state.doc_summaries[uploaded_file.name] = invoke_gemini_llm(summary_prompt)
 
 selected_doc = None
 if active_docs:
@@ -322,7 +320,7 @@ if selected_doc:
                 f"Verified Response:"
             )
             
-            response = invoke_groq_llm(full_prompt)
+            response = invoke_gemini_llm(full_prompt)
             with st.chat_message("assistant"):
                 st.write(response)
             
@@ -339,7 +337,7 @@ This engine operates as a secure, local **Retrieval-Augmented Generation (RAG)**
 The internal data stream relies on the following process protocols:
 * **Ingestion Router Layer:** Automatically captures file streams and runs independent text extractions for `.pdf`, `.docx`, and `.txt` architectures.
 * **Semantic Vector Storage:** Chunks data streams using character limit overlaps, creates arrays via local embedding layers, and hosts tables natively inside **ChromaDB**.
-* **Cloud LLM Synthesis Integration:** Fires explicit secure tokens directly into the **Groq Cloud Inference Engine (Llama 3)** node via zero-dependency `urllib` calls, leveraging live semantic blocks alongside conversational memory.
+* **Cloud LLM Synthesis Integration:** Fires explicit secure tokens directly into the **Google Gemini Cloud Inference Engine** node via zero-dependency `urllib` REST endpoints, leveraging live semantic blocks alongside conversational memory.
 """)
 
 st.markdown("<br>", unsafe_allow_html=True)
