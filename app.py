@@ -109,7 +109,7 @@ def load_system():
 
 embeddings = load_system()
 
-# Native Core REST Request Component for Groq Cloud API
+# Native Core REST Request Component for Groq Cloud API with Cloudflare Headers
 def invoke_groq_llm(prompt):
     api_key = st.secrets.get("GROQ_API_KEY")
     if not api_key:
@@ -125,8 +125,11 @@ def invoke_groq_llm(prompt):
     try:
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(url, data=data)
+        
+        # Adding standard browser headers to bypass Cloudflare Error 1010
         req.add_header("Content-Type", "application/json")
         req.add_header("Authorization", f"Bearer {api_key}")
+        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         
         with urllib.request.urlopen(req, timeout=30) as response:
             res_data = json.loads(response.read().decode("utf-8"))
