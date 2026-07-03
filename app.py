@@ -109,36 +109,39 @@ def load_system():
 
 embeddings = load_system()
 
-# Native Client Core Framework for Gemini Cloud API with Secure Dictionary Parsing
+# Bulletproof Gemini Cloud Core Engine Injection
 def invoke_gemini_llm(prompt):
     api_key = st.secrets.get("GEMINI_API_KEY")
     if not api_key:
         return "Error: GEMINI_API_KEY configuration token missing in Streamlit Advanced Settings."
     
+    # Pure REST API targeting stable production model architecture
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
         "contents": [{
+            "role": "user",
             "parts": [{"text": prompt}]
         }]
     }
     
     try:
-        req = urllib.request.Request(url)
-        req.add_header("Content-Type", "application/json")
-        
         data = json.dumps(payload).encode("utf-8")
-        with urllib.request.urlopen(req, data=data, timeout=30) as response:
+        req = urllib.request.Request(url, data=data)
+        
+        # Override headers to force cloud route approval
+        req.add_header("Content-Type", "application/json")
+        req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        
+        with urllib.request.urlopen(req, timeout=30) as response:
             res_data = json.loads(response.read().decode("utf-8"))
-            
-            # Bulletproof response data parsing node
             if "candidates" in res_data and len(res_data["candidates"]) > 0:
-                candidate = res_data["candidates"][0]
-                if "content" in candidate and "parts" in candidate["content"] and len(candidate["content"]["parts"]) > 0:
-                    return candidate["content"]["parts"][0]["text"]
-            
-            return f"Unexpected API Data Response Structure: {json.dumps(res_data)}"
+                return res_data["candidates"][0]["content"]["parts"][0]["text"]
+            return "Error: Invalid response block returned from Gemini servers."
+    except urllib.error.HTTPError as he:
+        err_msg = he.read().decode("utf-8")
+        return f"Enterprise Inference Pipeline Offline (API Server Refused Request): {err_msg}"
     except Exception as e:
-        return f"Enterprise Inference Pipeline Offline (Gemini Error): {str(e)}"
+        return f"Enterprise Inference Pipeline Offline: {str(e)}"
 
 def search_live_web(query):
     try:
