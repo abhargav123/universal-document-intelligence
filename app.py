@@ -109,7 +109,7 @@ def load_system():
 
 embeddings = load_system()
 
-# Native Client Core Framework for Gemini Cloud API
+# Native Client Core Framework for Gemini Cloud API with Secure Dictionary Parsing
 def invoke_gemini_llm(prompt):
     api_key = st.secrets.get("GEMINI_API_KEY")
     if not api_key:
@@ -129,7 +129,14 @@ def invoke_gemini_llm(prompt):
         data = json.dumps(payload).encode("utf-8")
         with urllib.request.urlopen(req, data=data, timeout=30) as response:
             res_data = json.loads(response.read().decode("utf-8"))
-            return res_data["candidates"][0]["content"]["parts"][0]["text"]
+            
+            # Bulletproof response data parsing node
+            if "candidates" in res_data and len(res_data["candidates"]) > 0:
+                candidate = res_data["candidates"][0]
+                if "content" in candidate and "parts" in candidate["content"] and len(candidate["content"]["parts"]) > 0:
+                    return candidate["content"]["parts"][0]["text"]
+            
+            return f"Unexpected API Data Response Structure: {json.dumps(res_data)}"
     except Exception as e:
         return f"Enterprise Inference Pipeline Offline (Gemini Error): {str(e)}"
 
